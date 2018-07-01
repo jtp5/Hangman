@@ -16,6 +16,7 @@ public class Hangman implements KeyListener {
 	private JPanel panel;
 	private JLabel word;
 	private JLabel lives;
+	private JLabel guessed;
 	private int numLives;
 	private int rounds;
 	private int round;
@@ -23,10 +24,10 @@ public class Hangman implements KeyListener {
 	private ArrayList<String> answers = new ArrayList<String>();
 
 	public Hangman() {
-		setup();
-		createUI();
 		numLives = 9;
 		round = 0;
+		setup();
+		createUI();
 	}
 
 	public void createUI() {
@@ -34,20 +35,29 @@ public class Hangman implements KeyListener {
 		panel = new JPanel();
 		word = new JLabel();
 		lives = new JLabel();
+		guessed = new JLabel();
 		frame.add(panel);
 		frame.addKeyListener(this);
 		panel.add(word);
 		panel.add(lives);
+		panel.add(guessed);
 		frame.setVisible(true);
 		panel.setVisible(true);
+		createRound();
+		frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
+	}
+	
+	public void createRound() {
 		String charHolder = "";
 		for (int i = 0; i < answers.get(round).length(); i++) {
 			charHolder += "_ ";
 		}
 		word.setText(charHolder);
+		numLives = 9;
 		lives.setText("LIVES: " + numLives);
+		guessed.setText("Guessed:");
 		frame.pack();
-		frame.setDefaultCloseOperation(frame.EXIT_ON_CLOSE);
+
 	}
 
 	public void setup() {
@@ -78,10 +88,39 @@ public class Hangman implements KeyListener {
 	@Override
 	public void keyPressed(KeyEvent e) {
 		// TODO Auto-generated method stub
+		boolean wordGuessed = true;
 		StringBuilder editor = new StringBuilder(word.getText());
 		if(answers.get(round).contains("" + e.getKeyChar())) {
-			editor.setCharAt(answers.get(round).indexOf(e.getKeyChar()) * 2, e.getKeyChar());
-			word.setText(editor.toString());
+			for (int i = 0; i < editor.length(); i++) {
+				if(answers.get(round).charAt(i/2) == e.getKeyChar() && i % 2 == 0)
+				editor.setCharAt(i, e.getKeyChar());
+			}
+		}
+		else {
+			numLives--;
+			guessed.setText(guessed.getText() + " " + e.getKeyChar() + ",");
+			frame.pack();
+		}
+		lives.setText("LIVES: " + numLives);
+		word.setText(editor.toString());
+		for (int i = 0; i < word.getText().length(); i++) {
+			if(word.getText().charAt(i) == '_') {
+				wordGuessed = false;
+			}
+		}
+		if(wordGuessed) {
+			if(round == rounds - 1) {
+				frame.dispose();
+				JOptionPane.showMessageDialog(null, "Congradulations, you win!");
+				System.exit(0);
+			}
+			round++;
+			createRound();
+		}
+		if(numLives <= 0) {
+			frame.dispose();
+			JOptionPane.showMessageDialog(null, "Sorry, you lost. The word was " + answers.get(round));
+			System.exit(0);
 		}
 	}
 
